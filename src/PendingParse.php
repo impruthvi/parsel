@@ -184,6 +184,16 @@ final class PendingParse
         return Document::arrayFromLiteParseJson($this->decodeJson());
     }
 
+    public function toMarkdown(): string
+    {
+        $pages = $this->parse()->pages;
+
+        return implode("\n\n---\n\n", array_map(
+            static fn (Page $page): string => trim($page->text),
+            $pages,
+        ));
+    }
+
     public function save(string $path): string
     {
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));

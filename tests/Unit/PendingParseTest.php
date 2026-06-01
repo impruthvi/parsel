@@ -52,6 +52,27 @@ it('returns the document as an array', function (): void {
     expect(Parsel::file(fixture('sample.pdf'))->toArray())->toHaveKeys(['pages', 'text', 'metadata']);
 });
 
+it('returns markdown with page separators for multi-page documents', function (): void {
+    Parsel::fake(['--format json' => fixtureContents('liteparse-output.json')]);
+
+    $markdown = Parsel::file(fixture('sample.pdf'))->toMarkdown();
+
+    expect($markdown)->toContain('---')
+        ->and($markdown)->not->toBeEmpty();
+});
+
+it('returns plain text with no separator for single-page documents', function (): void {
+    Parsel::fake(['--format json' => '{"pages":[{"page":1,"text":"Hello world","text_items":[]}]}']);
+
+    expect(Parsel::file(fixture('sample.pdf'))->toMarkdown())->toBe('Hello world');
+});
+
+it('returns empty string when document has no pages', function (): void {
+    Parsel::fake(['--format json' => '{"pages":[]}']);
+
+    expect(Parsel::file(fixture('sample.pdf'))->toMarkdown())->toBe('');
+});
+
 it('saves liteparse json verbatim by extension', function (): void {
     Parsel::fake(['--format json' => fixtureContents('liteparse-output.json')]);
     $out = sys_get_temp_dir().DIRECTORY_SEPARATOR.'parsel_save_'.uniqid().'.json';
